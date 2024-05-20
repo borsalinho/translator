@@ -43,13 +43,14 @@ class MainActivity : AppCompatActivity() {
         val textEnter = findViewById<TextView>(R.id.enterText)
 
         viewModel = MyViewModel(application)
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
 
         lifecycleScope.launch {
             viewModel.loadHistory()
         }
 
         viewModel.translations.observe(this) { translations ->
-            val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+
             recyclerView.layoutManager = LinearLayoutManager(this)
             recyclerView.adapter = ItemAdapter(translations)
         }
@@ -86,10 +87,32 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                if (firstVisibleItemPosition + visibleItemCount >= totalItemCount && firstVisibleItemPosition >= 0) {
+                    // Reached the end of the list, load more items
+                    viewModel.currentIndex += viewModel.batchSize
+                    lifecycleScope.launch {
+                        viewModel.loadHistory()
+                    }
+                }
+            }
+        })
+
+
     }
 }
 
 class MyViewModel(application: Application) : ViewModel() {
+
+    var currentIndex = 10
+    val batchSize = 10
 
     private val _translations = MutableLiveData<List<TranslationEntity>>()
     val translations: LiveData<List<TranslationEntity>>
@@ -113,7 +136,7 @@ class MyViewModel(application: Application) : ViewModel() {
     }
 
     suspend fun loadHistory() {
-        val history = translationDao.getTranslations().reversed()
+        val history = translationDao.getTranslations(0, currentIndex)
         _translations.postValue(history)
     }
 }
@@ -153,8 +176,12 @@ interface TranslationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(translation: TranslationEntity)
 
-    @androidx.room.Query("SELECT * FROM translations")
-    suspend fun getTranslations(): List<TranslationEntity>
+//    @androidx.room.Query("SELECT * FROM translations")
+//    suspend fun getTranslations(): List<TranslationEntity>
+
+    @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
+    suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
+
 }
 
 @Database(entities = [TranslationEntity::class], version = 1)
