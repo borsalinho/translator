@@ -45,7 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = MyViewModel(application)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        adapter = ItemAdapter(emptyList())
+
+        adapter = ItemAdapter(emptyList()) { translation ->
+            toggleFavorite(translation)
+        }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -56,9 +59,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.translations.observe(this) { translations ->
-
-//            recyclerView.layoutManager = LinearLayoutManager(this)
-//            recyclerView.adapter = ItemAdapter(translations)
             adapter.updateItems(translations)
         }
 
@@ -104,7 +104,6 @@ class MainActivity : AppCompatActivity() {
                 val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
 
                 if (firstVisibleItemPosition + visibleItemCount >= totalItemCount && firstVisibleItemPosition >= 0) {
-                    // Reached the end of the list, load more items
                     viewModel.currentIndex += viewModel.batchSize
                     lifecycleScope.launch {
                         viewModel.loadHistory()
@@ -115,6 +114,14 @@ class MainActivity : AppCompatActivity() {
         })
 
 
+
+
+    }
+
+    private fun toggleFavorite(translation: TranslationEntity) {
+        lifecycleScope.launch {
+            viewModel.updateFavorite(translation.id, !translation.favorite)
+        }
     }
 }
 
@@ -148,14 +155,23 @@ class MyViewModel(application: Application) : ViewModel() {
         val history = translationDao.getTranslations(0, currentIndex)
         _translations.postValue(history)
     }
+
+    suspend fun updateFavorite(id: Int, isFavorite: Boolean) {
+        translationDao.updateFavorite(id, isFavorite)
+        loadHistory()
+    }
 }
 
-class ItemAdapter(private var itemList: List<TranslationEntity>) : RecyclerView.Adapter<ItemAdapter.ItemViewHolder>() {
+class ItemAdapter(
+    private var itemList: List<TranslationEntity>,
+    private val onFavoriteClick: (TranslationEntity) -> Unit
+    ) : RecyclerView.Adapter<ItemAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val querry: TextView = itemView.findViewById(R.id.querry)
         val translates: TextView = itemView.findViewById(R.id.translates)
+        val btnFavorite: Button = itemView.findViewById(R.id.btnAddFavorite)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -167,8 +183,14 @@ class ItemAdapter(private var itemList: List<TranslationEntity>) : RecyclerView.
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = itemList[position]
-        holder.querry.text = item.id.toString() + " " + item.query.toString()
+        holder.querry.text = item.query
         holder.translates.text = item.translation
+        holder.btnFavorite.text = if (item.favorite) "favorite" else "add"
+        holder.btnFavorite.setOnClickListener {
+            onFavoriteClick(item)
+            item.favorite = !item.favorite
+            notifyItemChanged(position)
+        }
     }
 
     override fun getItemCount() = itemList.size
@@ -183,7 +205,8 @@ class ItemAdapter(private var itemList: List<TranslationEntity>) : RecyclerView.
 data class TranslationEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val query: String,
-    val translation: String
+    val translation: String,
+    var favorite : Boolean = false
 )
 
 @Dao
@@ -197,9 +220,13 @@ interface TranslationDao {
     @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
     suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
 
+    @androidx.room.Query("UPDATE translations SET favorite = :isFavorite WHERE id = :id")
+    suspend fun updateFavorite(id: Int, isFavorite: Boolean)
+
+
 }
 
-@Database(entities = [TranslationEntity::class], version = 1)
+@Database(entities = [TranslationEntity::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun translationDao(): TranslationDao
 }
