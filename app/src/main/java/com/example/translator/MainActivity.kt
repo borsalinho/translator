@@ -33,6 +33,7 @@ import retrofit2.http.Query
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MyViewModel
+    private lateinit var adapter: ItemAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = MyViewModel(application)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        adapter = ItemAdapter(emptyList())
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+
 
         lifecycleScope.launch {
             viewModel.loadHistory()
@@ -51,8 +57,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.translations.observe(this) { translations ->
 
-            recyclerView.layoutManager = LinearLayoutManager(this)
-            recyclerView.adapter = ItemAdapter(translations)
+//            recyclerView.layoutManager = LinearLayoutManager(this)
+//            recyclerView.adapter = ItemAdapter(translations)
+            adapter.updateItems(translations)
         }
 
         button.setOnClickListener {
@@ -87,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -100,6 +108,7 @@ class MainActivity : AppCompatActivity() {
                     viewModel.currentIndex += viewModel.batchSize
                     lifecycleScope.launch {
                         viewModel.loadHistory()
+
                     }
                 }
             }
@@ -141,9 +150,10 @@ class MyViewModel(application: Application) : ViewModel() {
     }
 }
 
-class ItemAdapter(private val itemList: List<TranslationEntity>) : RecyclerView.Adapter<ItemAdapter.ItemViewHolder>() {
+class ItemAdapter(private var itemList: List<TranslationEntity>) : RecyclerView.Adapter<ItemAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
         val querry: TextView = itemView.findViewById(R.id.querry)
         val translates: TextView = itemView.findViewById(R.id.translates)
     }
@@ -157,11 +167,16 @@ class ItemAdapter(private val itemList: List<TranslationEntity>) : RecyclerView.
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = itemList[position]
-        holder.querry.text = item.query
+        holder.querry.text = item.id.toString() + " " + item.query.toString()
         holder.translates.text = item.translation
     }
 
     override fun getItemCount() = itemList.size
+
+    fun updateItems(newItems: List<TranslationEntity>) {
+        itemList = newItems
+        notifyDataSetChanged()
+    }
 }
 
 @Entity(tableName = "translations")
