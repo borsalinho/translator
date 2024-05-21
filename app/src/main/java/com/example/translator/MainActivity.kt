@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -42,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         val querry_result = findViewById<TextView>(R.id.result)
         val button = findViewById<Button>(R.id.btnTranslate)
         val textEnter = findViewById<TextView>(R.id.enterText)
+        val favoritesButton = findViewById<Button>(R.id.btnFavorites)
 
         viewModel = MyViewModel(application)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
@@ -95,6 +97,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -123,6 +127,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.updateFavorite(translation.id, !translation.favorite)
         }
     }
+
+
 }
 
 class MyViewModel(application: Application) : ViewModel() {
@@ -133,6 +139,10 @@ class MyViewModel(application: Application) : ViewModel() {
     private val _translations = MutableLiveData<List<TranslationEntity>>()
     val translations: LiveData<List<TranslationEntity>>
         get() = _translations
+
+    private val _favorites = MutableLiveData<List<TranslationEntity>>()
+    val favorites: LiveData<List<TranslationEntity>>
+        get() = _favorites
 
     private val db: AppDatabase = Room.databaseBuilder(
         application.applicationContext,
@@ -146,6 +156,7 @@ class MyViewModel(application: Application) : ViewModel() {
         .build()
         .create(ProductApi::class.java)
 
+
     suspend fun saveTranslation(query: String, translation: String) {
         val translationEntity = TranslationEntity(query = query, translation = translation)
         translationDao.insert(translationEntity)
@@ -154,6 +165,11 @@ class MyViewModel(application: Application) : ViewModel() {
     suspend fun loadHistory() {
         val history = translationDao.getTranslations(0, currentIndex)
         _translations.postValue(history)
+    }
+
+    suspend fun loadFavorites() {
+        val favoriteList = translationDao.getFavoriteTranslations()
+        _favorites.postValue(favoriteList)
     }
 
     suspend fun updateFavorite(id: Int, isFavorite: Boolean) {
@@ -219,6 +235,9 @@ interface TranslationDao {
 
     @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
     suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
+
+    @androidx.room.Query("SELECT * FROM translations WHERE favorite = 1 ORDER BY id DESC")
+    suspend fun getFavoriteTranslations(): List<TranslationEntity>
 
     @androidx.room.Query("UPDATE translations SET favorite = :isFavorite WHERE id = :id")
     suspend fun updateFavorite(id: Int, isFavorite: Boolean)
