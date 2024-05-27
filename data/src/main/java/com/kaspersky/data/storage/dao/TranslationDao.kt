@@ -13,8 +13,8 @@ interface TranslationDao {
     @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
     suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
 
-    @androidx.room.Query("SELECT * FROM translations WHERE favorite = 1 ORDER BY id DESC")
-    suspend fun getFavoriteTranslations(): List<TranslationEntity>
+    @androidx.room.Query("SELECT * FROM translations WHERE favorite = 1 ORDER BY id DESC LIMIT :batchSize OFFSET :index")
+    suspend fun getFavoriteTranslations(index: Int, batchSize: Int): List<TranslationEntity>
 
     @androidx.room.Query("UPDATE translations SET favorite = :isFavorite WHERE id = :id")
     suspend fun updateFavoriteItem(id: Int, isFavorite: Boolean)

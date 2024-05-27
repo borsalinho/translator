@@ -3,6 +3,7 @@ package com.kaspersky.translator.di
 
 import android.content.Context
 import com.kaspersky.domain.model.WordTranslation
+import com.kaspersky.domain.repository.TranslationRepositry
 import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
@@ -28,13 +29,15 @@ class AppModule(val context: Context) {
         sendWordUseCase : SendWordUseCase,
         saveWordToDBUseCase : SaveWordToDBUseCase,
         getTranslaionUseCase : GetTranslaionUseCase,
-        updateFavoriteUseCase: UpdateFavoriteUseCase
+        updateFavoriteUseCase: UpdateFavoriteUseCase,
+        translationRepositry : TranslationRepositry
     ): MyViewModel {
         return MyViewModel(
             sendWordUseCase = sendWordUseCase,
             saveWordToDBUseCase = saveWordToDBUseCase,
             getTranslaionUseCase = getTranslaionUseCase,
-            updateFavoriteUseCase = updateFavoriteUseCase
+            updateFavoriteUseCase = updateFavoriteUseCase,
+            translationRepositry = translationRepositry
         )
     }
 

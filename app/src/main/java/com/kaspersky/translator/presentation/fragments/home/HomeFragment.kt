@@ -53,7 +53,6 @@ class HomeFragment : Fragment() {
             toggleFavorite(translation)
         }
 
-
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = historyAdapter
 

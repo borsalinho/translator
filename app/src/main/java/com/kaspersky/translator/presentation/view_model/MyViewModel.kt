@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.kaspersky.domain.model.WordQuerry
 import com.kaspersky.domain.model.WordTranslation
 import com.kaspersky.domain.model.WordsResponce
+import com.kaspersky.domain.repository.TranslationRepositry
 import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
@@ -22,20 +23,28 @@ class MyViewModel(
     private var sendWordUseCase : SendWordUseCase,
     private var saveWordToDBUseCase : SaveWordToDBUseCase,
     private var getTranslaionUseCase : GetTranslaionUseCase,
-    private var updateFavoriteUseCase : UpdateFavoriteUseCase
+    private var updateFavoriteUseCase : UpdateFavoriteUseCase,
+    private var translationRepositry : TranslationRepositry
 ) : ViewModel() {
 
     var currentIndex = 10
     val batchSize = 10
 
+    var currentIndexFavorite = 10
+    val batchSizeFavorite = 10
+
     init {
         viewModelScope.launch {
             loadHistory()
         }
+
     }
 
     private val _translations = MutableLiveData<List<WordTranslation>>()
     val translations: LiveData<List<WordTranslation>> get() = _translations
+
+    private val _favorite_translations = MutableLiveData<List<WordTranslation>>()
+    val favoriteTranslations: LiveData<List<WordTranslation>> get() = _favorite_translations
 
     private var _text_result = MutableLiveData<String>()
     val text_result: LiveData<String> get() = _text_result
@@ -67,6 +76,11 @@ class MyViewModel(
     suspend fun updateFavorite(id: Int, isFavorite: Boolean) {
         updateFavoriteUseCase.execute(id = id, isFavorite = isFavorite)
         loadHistory()
+    }
+
+    suspend fun loadFavoriteHistory(){
+        val favoriteHistory = translationRepositry.getFavoriteTranslations(index = 0, currentIndex = currentIndexFavorite)
+        _favorite_translations.postValue(favoriteHistory)
     }
 
 }

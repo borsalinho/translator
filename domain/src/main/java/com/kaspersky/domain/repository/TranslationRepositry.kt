@@ -7,4 +7,6 @@ interface TranslationRepositry {
     suspend fun loadHistoryFromDB(index: Int, currentIndex: Int) : List<WordTranslation>
 
     suspend fun updateFavoriteItem(id: Int, isFavorite: Boolean)
+
+    suspend fun getFavoriteTranslations(index: Int, currentIndex: Int) : List<WordTranslation>
 }
