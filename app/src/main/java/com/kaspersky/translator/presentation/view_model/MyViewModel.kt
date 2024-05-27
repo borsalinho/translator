@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MyViewModel(
-    private var sendWordUseCase : SendWordUseCase,
-    private var saveWordToDBUseCase : SaveWordToDBUseCase,
-    private var getTranslaionUseCase : GetTranslaionUseCase,
-    private var updateFavoriteUseCase : UpdateFavoriteUseCase,
-    private var translationRepositry : TranslationRepositry
+    private var sendWordUseCase: SendWordUseCase,
+    private var saveWordToDBUseCase: SaveWordToDBUseCase,
+    private var getTranslaionUseCase: GetTranslaionUseCase,
+    private var updateFavoriteUseCase: UpdateFavoriteUseCase,
+    private var translationRepositry: TranslationRepositry
 ) : ViewModel() {
 
     var currentIndex = 10
@@ -37,7 +37,6 @@ class MyViewModel(
         viewModelScope.launch {
             loadHistory()
         }
-
     }
 
     private val _translations = MutableLiveData<List<WordTranslation>>()
@@ -54,21 +53,22 @@ class MyViewModel(
     }
 
 
-    suspend fun sendWordToApi(query : WordQuerry) : WordsResponce {
-        return withContext(Dispatchers.IO){
+    suspend fun sendWordToApi(query: WordQuerry): WordsResponce {
+        return withContext(Dispatchers.IO) {
             sendWordUseCase.execute(query = query)
         }
     }
 
     suspend fun saveTranslation(
-        query : WordQuerry,
-        responce : WordsResponce){
-        withContext(Dispatchers.IO){
+        query: WordQuerry,
+        responce: WordsResponce
+    ) {
+        withContext(Dispatchers.IO) {
             saveWordToDBUseCase.execute(query = query, responce = responce)
         }
     }
 
-    suspend fun loadHistory(){
+    suspend fun loadHistory() {
         val history = getTranslaionUseCase.execute(index = 0, currentIndex = currentIndex)
         _translations.postValue(history)
     }
@@ -78,8 +78,11 @@ class MyViewModel(
         loadHistory()
     }
 
-    suspend fun loadFavoriteHistory(){
-        val favoriteHistory = translationRepositry.getFavoriteTranslations(index = 0, currentIndex = currentIndexFavorite)
+    suspend fun loadFavoriteHistory() {
+        val favoriteHistory = translationRepositry.getFavoriteTranslations(
+            index = 0,
+            currentIndex = currentIndexFavorite
+        )
         _favorite_translations.postValue(favoriteHistory)
     }
 

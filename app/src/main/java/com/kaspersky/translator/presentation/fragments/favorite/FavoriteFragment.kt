@@ -25,7 +25,7 @@ class FavoriteFragment : Fragment() {
     lateinit var homeViewModel: MyViewModel
 
     @Inject
-    lateinit var historyAdapter : HistoryItemAdapter
+    lateinit var historyAdapter: HistoryItemAdapter
 
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
@@ -57,7 +57,7 @@ class FavoriteFragment : Fragment() {
         recyclerView.adapter = historyAdapter
 
 
-        homeViewModel.favoriteTranslations.observe(viewLifecycleOwner){ history ->
+        homeViewModel.favoriteTranslations.observe(viewLifecycleOwner) { history ->
             historyAdapter.updateItems(history)
         }
 

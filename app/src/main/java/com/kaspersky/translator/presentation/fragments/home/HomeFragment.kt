@@ -25,7 +25,7 @@ class HomeFragment : Fragment() {
     lateinit var homeViewModel: MyViewModel
 
     @Inject
-    lateinit var historyAdapter : HistoryItemAdapter
+    lateinit var historyAdapter: HistoryItemAdapter
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -57,7 +57,7 @@ class HomeFragment : Fragment() {
         recyclerView.adapter = historyAdapter
 
 
-        homeViewModel.translations.observe(viewLifecycleOwner){ history ->
+        homeViewModel.translations.observe(viewLifecycleOwner) { history ->
             historyAdapter.updateItems(history)
         }
 
@@ -75,11 +75,12 @@ class HomeFragment : Fragment() {
         btnTranslate.setOnClickListener {
             val query = textEnter.text.toString().trim()
 
-            if (!HomeFragmentValidator(query)){
+            if (!HomeFragmentValidator(query)) {
                 Toast.makeText(
                     context,
                     "Введите ОДНО английское слово",
-                    Toast.LENGTH_SHORT)
+                    Toast.LENGTH_SHORT
+                )
                     .show()
                 return@setOnClickListener
             }
@@ -115,7 +116,7 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 
-    private fun HomeFragmentValidator(query : String) : Boolean {
+    private fun HomeFragmentValidator(query: String): Boolean {
         if (query.isEmpty() || !query.matches(Regex("^[a-zA-Z]+$"))) {
             return false
         }
