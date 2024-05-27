@@ -7,3 +7,4 @@ gradle7.6
 coroutines
 XML
 API SkyEng
+Device - Pixel 7 API 34

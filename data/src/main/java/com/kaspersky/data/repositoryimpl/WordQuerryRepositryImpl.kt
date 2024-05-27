@@ -27,7 +27,7 @@ class WordQuerryRepositryImpl(
                 .map { it.translation.text }
                 .joinToString(", ")
         } else {
-            translations = "нет ответа"
+            throw IllegalArgumentException("Нет перевода")
         }
 
         return WordsResponce(translations)

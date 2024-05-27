@@ -4,29 +4,34 @@ package com.kaspersky.translator.view_model
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.room.Room
-import com.kaspersky.data.storage.dao.TranslationDao
-import com.kaspersky.data.storage.database.AppDatabase
-import com.kaspersky.data.storage.model.TranslationEntity
+import androidx.lifecycle.viewModelScope
+
+
 import com.kaspersky.domain.model.WordQuerry
+import com.kaspersky.domain.model.WordTranslation
 import com.kaspersky.domain.model.WordsResponce
+import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 class MyViewModel(
     private var sendWordUseCase : SendWordUseCase,
     private var saveWordToDBUseCase : SaveWordToDBUseCase,
+    private var getTranslaionUseCase : GetTranslaionUseCase
 ) : ViewModel() {
 
+    init {
+        viewModelScope.launch {
+            loadHistory()
+        }
+    }
 
 
-
-    private val _translations = MutableLiveData<List<TranslationEntity>>()
-    val translations: LiveData<List<TranslationEntity>> get() = _translations
+    private val _translations = MutableLiveData<List<WordTranslation>>()
+    val translations: LiveData<List<WordTranslation>> get() = _translations
 
     private var _text_result = MutableLiveData<String>()
     val text_result: LiveData<String> get() = _text_result
@@ -37,13 +42,11 @@ class MyViewModel(
 
 
 
-    suspend fun sendWord(query : WordQuerry) : WordsResponce {
+    suspend fun sendWordToApi(query : WordQuerry) : WordsResponce {
         return withContext(Dispatchers.IO){
             sendWordUseCase.execute(query = query)
         }
     }
-
-
 
     suspend fun saveTranslation(
         query : WordQuerry,
@@ -53,15 +56,9 @@ class MyViewModel(
         }
     }
 
-
-
-    private val _text_1 = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    suspend fun loadHistory(){
+        val history = getTranslaionUseCase.execute()
+        _translations.postValue(history)
     }
-    val text_1: LiveData<String> = _text_1
 
-    private val _text_2 = MutableLiveData<String>().apply {
-        value = "This is favorite Fragment"
-    }
-    val text_2: LiveData<String> = _text_2
 }

@@ -7,9 +7,11 @@ package com.kaspersky.translator.di
 import android.content.Context
 import androidx.room.Room
 import com.kaspersky.data.network.ApiSkyEnd
+import com.kaspersky.data.repositoryimpl.TranslationRepositryImpl
 import com.kaspersky.data.repositoryimpl.WordQuerryRepositryImpl
 import com.kaspersky.data.storage.dao.TranslationDao
 import com.kaspersky.data.storage.database.AppDatabase
+import com.kaspersky.domain.repository.TranslationRepositry
 import com.kaspersky.domain.repository.WordQuerryRepository
 import dagger.Module
 import dagger.Provides
@@ -29,6 +31,16 @@ class DataModule {
     ) : WordQuerryRepository {
         return WordQuerryRepositryImpl(
             apiSkyEng = apiSkyEng,
+            translationDao = translationDao
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideTranslationRepositry(
+        translationDao : TranslationDao
+    ) : TranslationRepositry{
+        return TranslationRepositryImpl(
             translationDao = translationDao
         )
     }

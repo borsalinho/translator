@@ -10,6 +10,9 @@ interface TranslationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(translation: TranslationEntity)
 
+    @androidx.room.Query("SELECT * FROM translations")
+    suspend fun getTranslations(): List<TranslationEntity>
+
     @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
     suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
 

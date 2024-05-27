@@ -1,6 +1,8 @@
 package com.kaspersky.translator.di
 
+import com.kaspersky.domain.repository.TranslationRepositry
 import com.kaspersky.domain.repository.WordQuerryRepository
+import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
 import dagger.Module
@@ -20,6 +22,12 @@ class DomainModule {
     @Provides
     fun provideSaveWordToDBUseCase(wordQuerryRepository: WordQuerryRepository) : SaveWordToDBUseCase{
         return SaveWordToDBUseCase(wordQuerryRepository = wordQuerryRepository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideGetTranslaionUseCase(translationRepositry: TranslationRepositry) : GetTranslaionUseCase {
+        return GetTranslaionUseCase(translationRepositry = translationRepositry)
     }
 }
 
