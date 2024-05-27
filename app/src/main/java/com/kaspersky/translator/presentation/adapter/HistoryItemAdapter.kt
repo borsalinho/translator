@@ -7,7 +7,8 @@ import com.kaspersky.domain.model.WordTranslation
 import com.kaspersky.translator.databinding.ListItemBinding
 
 class HistoryItemAdapter(
-    private var itemList: List<WordTranslation>
+    private var itemList: List<WordTranslation>,
+    private val onFavoriteClick: (WordTranslation) -> Unit
 ) : RecyclerView.Adapter<HistoryItemAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(val binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root)
@@ -25,6 +26,12 @@ class HistoryItemAdapter(
         val item = itemList[position]
         holder.binding.querry.text = item.query
         holder.binding.translates.text = item.translation
+        holder.binding.btnAddFavorite.text = if (item.favorite) "favorite" else "add"
+        holder.binding.btnAddFavorite.setOnClickListener {
+            onFavoriteClick(item)
+            item.favorite = !item.favorite
+            notifyItemChanged(position)
+        }
     }
 
     override fun getItemCount() = itemList.size

@@ -10,9 +10,6 @@ interface TranslationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(translation: TranslationEntity)
 
-    @androidx.room.Query("SELECT * FROM translations")
-    suspend fun getTranslations(): List<TranslationEntity>
-
     @androidx.room.Query("SELECT * FROM translations ORDER BY id DESC LIMIT :batchSize OFFSET :index")
     suspend fun getTranslations(index: Int, batchSize: Int): List<TranslationEntity>
 
@@ -20,6 +17,6 @@ interface TranslationDao {
     suspend fun getFavoriteTranslations(): List<TranslationEntity>
 
     @androidx.room.Query("UPDATE translations SET favorite = :isFavorite WHERE id = :id")
-    suspend fun updateFavorite(id: Int, isFavorite: Boolean)
+    suspend fun updateFavoriteItem(id: Int, isFavorite: Boolean)
 
 }

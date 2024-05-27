@@ -9,10 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kaspersky.domain.model.WordQuerry
+import com.kaspersky.domain.model.WordTranslation
 import com.kaspersky.domain.model.WordsResponce
 import com.kaspersky.translator.app.App
 import com.kaspersky.translator.databinding.FragmentHomeBinding
 import com.kaspersky.translator.presentation.adapter.HistoryItemAdapter
+import com.kaspersky.translator.presentation.extensions.addOnLoadMoreListener
 import com.kaspersky.translator.view_model.MyViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,6 +33,7 @@ class HomeFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (requireActivity().application as App).appComponent.inject(this)
+
     }
 
     override fun onCreateView(
@@ -41,14 +44,19 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        //---------------------------------------------------------------
         val textEnter = binding.textEnter
         val btnTranslate = binding.btnTranslate
         val textResult = binding.textResult
         val recyclerView = binding.recyclerView
 
+        historyAdapter = HistoryItemAdapter(emptyList()) { translation ->
+            toggleFavorite(translation)
+        }
+
+
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = historyAdapter
+
 
         homeViewModel.translations.observe(viewLifecycleOwner){ history ->
             historyAdapter.updateItems(history)
@@ -58,7 +66,12 @@ class HomeFragment : Fragment() {
             textResult.text = it
         }
 
-
+        recyclerView.addOnLoadMoreListener {
+            homeViewModel.currentIndex += homeViewModel.batchSize
+            lifecycleScope.launch {
+                homeViewModel.loadHistory()
+            }
+        }
 
         btnTranslate.setOnClickListener {
             val query = textEnter.text.toString().trim()
@@ -95,8 +108,6 @@ class HomeFragment : Fragment() {
 
         }
 
-
-        //---------------------------------------------------------------
         return root
     }
 
@@ -110,5 +121,11 @@ class HomeFragment : Fragment() {
             return false
         }
         return true
+    }
+
+    private fun toggleFavorite(translation: WordTranslation) {
+        lifecycleScope.launch {
+            homeViewModel.updateFavorite(translation.id, !translation.favorite)
+        }
     }
 }

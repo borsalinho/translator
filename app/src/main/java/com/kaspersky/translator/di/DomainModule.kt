@@ -5,6 +5,7 @@ import com.kaspersky.domain.repository.WordQuerryRepository
 import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
+import com.kaspersky.domain.usecases.UpdateFavoriteUseCase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -28,6 +29,12 @@ class DomainModule {
     @Provides
     fun provideGetTranslaionUseCase(translationRepositry: TranslationRepositry) : GetTranslaionUseCase {
         return GetTranslaionUseCase(translationRepositry = translationRepositry)
+    }
+
+    @Singleton
+    @Provides
+    fun provideUpdateFavoriteUseCase(translationRepositry: TranslationRepositry) : UpdateFavoriteUseCase {
+        return UpdateFavoriteUseCase(translationRepositry = translationRepositry)
     }
 }
 

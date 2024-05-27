@@ -13,6 +13,7 @@ import com.kaspersky.domain.model.WordsResponce
 import com.kaspersky.domain.usecases.GetTranslaionUseCase
 import com.kaspersky.domain.usecases.SaveWordToDBUseCase
 import com.kaspersky.domain.usecases.SendWordUseCase
+import com.kaspersky.domain.usecases.UpdateFavoriteUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,15 +21,18 @@ import kotlinx.coroutines.withContext
 class MyViewModel(
     private var sendWordUseCase : SendWordUseCase,
     private var saveWordToDBUseCase : SaveWordToDBUseCase,
-    private var getTranslaionUseCase : GetTranslaionUseCase
+    private var getTranslaionUseCase : GetTranslaionUseCase,
+    private var updateFavoriteUseCase : UpdateFavoriteUseCase
 ) : ViewModel() {
+
+    var currentIndex = 10
+    val batchSize = 10
 
     init {
         viewModelScope.launch {
             loadHistory()
         }
     }
-
 
     private val _translations = MutableLiveData<List<WordTranslation>>()
     val translations: LiveData<List<WordTranslation>> get() = _translations
@@ -39,7 +43,6 @@ class MyViewModel(
     fun setTextResult(value: String) {
         _text_result.value = value
     }
-
 
 
     suspend fun sendWordToApi(query : WordQuerry) : WordsResponce {
@@ -57,8 +60,13 @@ class MyViewModel(
     }
 
     suspend fun loadHistory(){
-        val history = getTranslaionUseCase.execute()
+        val history = getTranslaionUseCase.execute(index = 0, currentIndex = currentIndex)
         _translations.postValue(history)
+    }
+
+    suspend fun updateFavorite(id: Int, isFavorite: Boolean) {
+        updateFavoriteUseCase.execute(id = id, isFavorite = isFavorite)
+        loadHistory()
     }
 
 }
